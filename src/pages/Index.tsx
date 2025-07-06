@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   BookOpen, 
@@ -14,31 +13,12 @@ import {
   Target,
   Timer
 } from 'lucide-react';
+import { useDashboardData } from '../hooks/useDashboardData';
 
 const Index = () => {
-  // Datos de ejemplo
-  const coursesData = [
-    { name: 'Matemáticas Avanzadas', progress: 78, color: '#4D44C3' },
-    { name: 'Física Cuántica', progress: 65, color: '#F5A623' },
-    { name: 'Programación Web', progress: 92, color: '#59C431' },
-    { name: 'Historia del Arte', progress: 45, color: '#E54F4F' }
-  ];
+  const { data, toggleTaskCompleted, updateCourseProgress } = useDashboardData();
 
-  const tasksData = [
-    { task: 'Entrega proyecto final - Matemáticas', date: '2025-01-10', priority: 'alta' },
-    { task: 'Examen parcial - Física', date: '2025-01-12', priority: 'media' },
-    { task: 'Ensayo - Historia del Arte', date: '2025-01-15', priority: 'baja' },
-    { task: 'Práctica de laboratorio', date: '2025-01-08', priority: 'alta' }
-  ];
-
-  const achievementsData = [
-    { title: 'Mejor calificación del mes', icon: '🏆', date: '5 días' },
-    { title: 'Racha de 7 días estudiando', icon: '🔥', date: '1 semana' },
-    { title: 'Completó 3 cursos', icon: '📚', date: '2 semanas' }
-  ];
-
-  const weeklyData = [65, 78, 82, 70, 85, 90, 88];
-  const maxWeekly = Math.max(...weeklyData);
+  const maxWeekly = Math.max(...data.weeklyData);
 
   return (
     <div style={{ 
@@ -115,7 +95,7 @@ const Index = () => {
               </h3>
             </div>
             <div style={{ fontSize: '36px', fontWeight: 700, color: '#4D44C3', marginBottom: '8px' }}>
-              74%
+              {data.generalProgress}%
             </div>
             <p style={{ fontSize: '14px', color: '#888888', margin: 0 }}>
               +12% desde el mes pasado
@@ -140,7 +120,7 @@ const Index = () => {
               </h3>
             </div>
             <div style={{ fontSize: '36px', fontWeight: 700, color: '#F5A623', marginBottom: '8px' }}>
-              28h
+              {data.studyTime}h
             </div>
             <p style={{ fontSize: '14px', color: '#888888', margin: 0 }}>
               Esta semana
@@ -165,7 +145,7 @@ const Index = () => {
               </h3>
             </div>
             <div style={{ fontSize: '36px', fontWeight: 700, color: '#59C431', marginBottom: '8px' }}>
-              8.7
+              {data.averageGrade}
             </div>
             <p style={{ fontSize: '14px', color: '#888888', margin: 0 }}>
               Últimas evaluaciones
@@ -190,7 +170,7 @@ const Index = () => {
               </h3>
             </div>
             <div style={{ fontSize: '36px', fontWeight: 700, color: '#4D44C3', marginBottom: '8px' }}>
-              23/28
+              {data.completedTasks}/{data.totalTasks}
             </div>
             <p style={{ fontSize: '14px', color: '#888888', margin: 0 }}>
               Este mes
@@ -296,7 +276,7 @@ const Index = () => {
               Cursos Activos
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {coursesData.map((course, index) => (
+              {data.courses.map((course, index) => (
                 <div key={index} style={{
                   padding: '16px',
                   backgroundColor: '#F5F5F5',
@@ -366,7 +346,7 @@ const Index = () => {
               height: '120px',
               gap: '8px'
             }}>
-              {weeklyData.map((value, index) => (
+              {data.weeklyData.map((value, index) => (
                 <div key={index} style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -414,16 +394,17 @@ const Index = () => {
               Tareas Pendientes
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {tasksData.map((task, index) => (
-                <div key={index} style={{
+              {data.tasks.filter(task => !task.completed).map((task, index) => (
+                <div key={task.id} style={{
                   padding: '12px',
                   backgroundColor: '#F5F5F5',
                   borderRadius: '6px',
                   borderLeft: `4px solid ${
                     task.priority === 'alta' ? '#E54F4F' :
                     task.priority === 'media' ? '#F5A623' : '#59C431'
-                  }`
-                }}>
+                  }`,
+                  cursor: 'pointer'
+                }} onClick={() => toggleTaskCompleted(task.id)}>
                   <h4 style={{
                     fontSize: '14px',
                     fontWeight: 500,
@@ -460,8 +441,8 @@ const Index = () => {
               Logros Recientes
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {achievementsData.map((achievement, index) => (
-                <div key={index} style={{
+              {data.achievements.map((achievement, index) => (
+                <div key={achievement.id} style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px'
@@ -505,82 +486,27 @@ const Index = () => {
               Análisis de Tiempo
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span style={{
-                  fontSize: '14px',
-                  color: '#333333'
+              {data.timeAnalysis.map((item, index) => (
+                <div key={index} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
                 }}>
-                  Matemáticas
-                </span>
-                <span style={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: '#4D44C3'
-                }}>
-                  8h
-                </span>
-              </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span style={{
-                  fontSize: '14px',
-                  color: '#333333'
-                }}>
-                  Programación
-                </span>
-                <span style={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: '#F5A623'
-                }}>
-                  12h
-                </span>
-              </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span style={{
-                  fontSize: '14px',
-                  color: '#333333'
-                }}>
-                  Física
-                </span>
-                <span style={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: '#59C431'
-                }}>
-                  6h
-                </span>
-              </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span style={{
-                  fontSize: '14px',
-                  color: '#333333'
-                }}>
-                  Historia
-                </span>
-                <span style={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: '#E54F4F'
-                }}>
-                  2h
-                </span>
-              </div>
+                  <span style={{
+                    fontSize: '14px',
+                    color: '#333333'
+                  }}>
+                    {item.subject}
+                  </span>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: item.color
+                  }}>
+                    {item.hours}h
+                  </span>
+                </div>
+              ))}
               <div style={{
                 marginTop: '16px',
                 padding: '12px',
@@ -600,7 +526,7 @@ const Index = () => {
                   fontWeight: 600,
                   color: '#4D44C3'
                 }}>
-                  4h
+                  {Math.round(data.timeAnalysis.reduce((acc, item) => acc + item.hours, 0) / 7)}h
                 </span>
               </div>
             </div>
